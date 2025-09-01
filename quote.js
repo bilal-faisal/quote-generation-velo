@@ -344,25 +344,25 @@ function initializeState11111() {
 
 function setupInstallationQuestions() {
     const questionsData = [{
-            _id: "1",
-            question: "What best describes your needs?",
-            options: ["First time CCTV customer", "Upgrading an old system"]
-        },
-        {
-            _id: "2",
-            question: "Is your premises wired for a CCTV? (If yes, a cost reduction may be available.)",
-            options: ["Yes", "No"]
-        },
-        {
-            _id: "3",
-            question: "Is your attic space accessible?",
-            options: ["Yes", "No"]
-        },
-        {
-            _id: "4",
-            question: "Are you interested in hearing about CCTV Monitoring? This is a 24/7 Intrusion detection service where we can monitor your CCTV.",
-            options: ["Yes", "No"]
-        }
+        _id: "1",
+        question: "What best describes your needs?",
+        options: ["First time CCTV customer", "Upgrading an old system"]
+    },
+    {
+        _id: "2",
+        question: "Is your premises wired for a CCTV? (If yes, a cost reduction may be available.)",
+        options: ["Yes", "No"]
+    },
+    {
+        _id: "3",
+        question: "Is your attic space accessible?",
+        options: ["Yes", "No"]
+    },
+    {
+        _id: "4",
+        question: "Are you interested in hearing about CCTV Monitoring? This is a 24/7 Intrusion detection service where we can monitor your CCTV.",
+        options: ["Yes", "No"]
+    }
     ];
 
     $w('#repeaterInstallationQuestions').data = questionsData;
@@ -772,19 +772,26 @@ function calculateTotalPrice() {
         totalPrice += basePrice;
         quoteBreakdown += `${quoteData.selectedPackage}: €${basePrice.toFixed(2)}\n`;
 
-        // Add-ons
+        // Add camera quantity cost
+        if (quoteData.numberOfCameras && quoteData.numberOfCameras.value) {
+            const cameraPrice = parseFloat(quoteData.numberOfCameras.value);
+            totalPrice += cameraPrice;
+            quoteBreakdown += `${quoteData.numberOfCameras.label}: €${cameraPrice.toFixed(2)}\n`;
+        }
+
+        // Add monitor cost
         if (quoteData.includeMonitor && quoteData.includeMonitor.value) {
             const monitorPrice = parseFloat(quoteData.includeMonitor.value);
             totalPrice += monitorPrice;
             quoteBreakdown += `${quoteData.includeMonitor.label}: €${monitorPrice.toFixed(2)}\n`;
         }
 
+        // Add app view cost
         if (quoteData.includeAppView && quoteData.includeAppView.value) {
             const appViewPrice = parseFloat(quoteData.includeAppView.value);
             totalPrice += appViewPrice;
             quoteBreakdown += `${quoteData.includeAppView.label}: €${appViewPrice.toFixed(2)}\n`;
         }
-
     } else if (quoteData.selectedCategory === "Intruder Alarm") {
         // Base package price
         const basePrice = PACKAGE_BASE_PRICES.INTRUDER_ALARM;
