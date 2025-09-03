@@ -1,4 +1,6 @@
-import wixLocation from "wix-location"
+import wixData from 'wix-data';
+import wixLocation from "wix-location";
+import { sendAdminCCTVEmail, sendAdminAlarmEmail } from 'backend/sendEmail.web';
 
 // Global variable to store form data
 let quoteData = {
@@ -595,11 +597,20 @@ function saveState121Data() {
     $w('#repeaterIntruderOptions').forEachItem(($item, itemData) => {
         const quantity = parseInt($item('#dropdownQuantity').value);
 
-        quoteData.intruderComponents.push({
-            name: $item('#textNameIntruderOption').text,
-            quantity: quantity,
-            unitPrice: itemData.unitPrice
-        });
+        // Only save items with quantity > 0
+        if (quantity > 0) {
+            quoteData.intruderComponents.push({
+                name: $item('#textNameIntruderOption').text,
+                description: $item('#textDescIntruderOption').text,
+                priceDisplay: $item('#textPriceDisplayIntruderOption').text,
+                quantity: quantity
+            });
+        }
+        // quoteData.intruderComponents.push({
+        //     name: $item('#textNameIntruderOption').text,
+        //     quantity: quantity,
+        //     unitPrice: itemData.unitPrice
+        // });
     });
 }
 
@@ -811,12 +822,16 @@ function calculateTotalPrice() {
             quoteBreakdown += `${quoteData.appAccessWithAlarm.label}: €${appAccessPrice.toFixed(2)}\n`;
         }
 
-        // Intruder components
+        // Intruder components - FIXED SECTION
         if (quoteData.intruderComponents && quoteData.intruderComponents.length > 0) {
             quoteBreakdown += "\nAdditional Components:\n";
             quoteData.intruderComponents.forEach(component => {
                 if (component.quantity > 0) {
-                    const componentTotal = component.unitPrice * component.quantity;
+                    // Extract price from priceDisplay string like "€100.00 inc VAT"
+                    const priceMatch = component.priceDisplay.match(/€(\d+\.?\d*)/);
+                    const unitPrice = priceMatch ? parseFloat(priceMatch[1]) : 0;
+
+                    const componentTotal = unitPrice * component.quantity;
                     totalPrice += componentTotal;
                     quoteBreakdown += `${component.name} (${component.quantity}x): €${componentTotal.toFixed(2)}\n`;
                 }
@@ -832,16 +847,16 @@ function calculateTotalPrice() {
     };
 }
 
-function processQuoteData() {
+async function processQuoteData() {
     let filteredQuoteData = {};
 
     if (quoteData.selectedCategory === "CCTV System") {
         filteredQuoteData = {
             selectedCategory: quoteData.selectedCategory,
             selectedPackage: quoteData.selectedPackage,
-            numberOfCameras: quoteData.numberOfCameras,
-            includeMonitor: quoteData.includeMonitor,
-            includeAppView: quoteData.includeAppView,
+            numberOfCameras: quoteData.numberOfCameras["label"].split(" ")[0],
+            includeMonitor: quoteData.includeMonitor["label"],
+            includeAppView: quoteData.includeAppView["label"],
             cameraLocations: quoteData.cameraLocations,
             installationQuestions: quoteData.installationQuestions,
             userDetails: quoteData.userDetails,
@@ -852,16 +867,16 @@ function processQuoteData() {
         filteredQuoteData = {
             selectedCategory: quoteData.selectedCategory,
             selectedPackage: quoteData.selectedPackage,
-            alarmMonitoring: quoteData.alarmMonitoring,
-            appAccessWithAlarm: quoteData.appAccessWithAlarm,
             intruderComponents: quoteData.intruderComponents,
-            numberOfAccessDoors: quoteData.numberOfAccessDoors,
-            howManyAreGlazedDoors: quoteData.howManyAreGlazedDoors,
-            sensorColour: quoteData.sensorColour,
-            existingAlarm: quoteData.existingAlarm,
-            mayBeACostSaving: quoteData.mayBeACostSaving,
-            atticSpaceAvailable: quoteData.atticSpaceAvailable,
-            levelOfCrime: quoteData.levelOfCrime,
+            alarmMonitoring: quoteData.alarmMonitoring["label"],
+            appAccessWithAlarm: quoteData.appAccessWithAlarm["label"],
+            numberOfAccessDoors: quoteData.numberOfAccessDoors["label"],
+            howManyAreGlazedDoors: quoteData.howManyAreGlazedDoors["label"],
+            sensorColour: quoteData.sensorColour["label"],
+            existingAlarm: quoteData.existingAlarm["label"],
+            mayBeACostSaving: quoteData.mayBeACostSaving["label"],
+            atticSpaceAvailable: quoteData.atticSpaceAvailable["label"],
+            levelOfCrime: quoteData.levelOfCrime["label"],
             userDetails: quoteData.userDetails,
             totalPrice: 0,
             quoteBreakdown: ""
@@ -879,12 +894,16 @@ function processQuoteData() {
     initializeFinalState(priceCalculation);
     $w('#multiStateBox').changeState("stateQuote");
 
-    console.log("Final Quote Data:", filteredQuoteData);
-    console.log("Quote Breakdown:\n", priceCalculation.breakdown);
+    try {
+        // Save to database
+        await saveToDatabase(filteredQuoteData);
 
-    // Here you can add further processing like:
-    // - Send to database
-    // - Send email to admin
+        // Send admin email
+        await sendEmailToAdmin(filteredQuoteData);
+    } catch (error) {
+        console.error("Error in processQuoteData:", error);
+    }
+
     // - Send email to customer
 }
 
@@ -901,4 +920,39 @@ function initializeFinalState(priceCalculation) {
 
     // Set info with user's email
     $w('#textInfo').text = `We have emailed your quote to ${quoteData.userDetails.email} and a customer rep will be in touch shortly.`;
+}
+
+async function saveToDatabase(filteredQuoteData) {
+    try {
+        const result = await wixData.save("Submissions", filteredQuoteData);
+        console.log("Quote saved successfully:", result);
+        return result;
+    } catch (error) {
+        console.error("Error saving quote:", error);
+        throw error; // Re-throw so calling function can handle it if needed
+    }
+}
+
+async function sendEmailToAdmin(filteredQuoteData) {
+    try {
+        if (quoteData.selectedCategory === "CCTV System") {
+            // Send admin email for CCTV
+            const result = await sendAdminCCTVEmail(filteredQuoteData);
+            if (result.success) {
+                console.log("Admin CCTV email sent successfully");
+            } else {
+                console.error("Failed to send admin CCTV email:", result.error);
+            }
+        } else if (quoteData.selectedCategory === "Intruder Alarm") {
+            // Send admin email for Alarm
+            const result = await sendAdminAlarmEmail(filteredQuoteData);
+            if (result.success) {
+                console.log("Admin Alarm email sent successfully");
+            } else {
+                console.error("Failed to send admin Alarm email:", result.error);
+            }
+        }
+    } catch (error) {
+        console.error("Error sending admin email:", error);
+    }
 }
