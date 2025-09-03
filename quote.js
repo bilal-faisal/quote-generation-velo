@@ -875,9 +875,30 @@ function processQuoteData() {
     filteredQuoteData.totalPrice = priceCalculation.totalPrice;
     filteredQuoteData.quoteBreakdown = priceCalculation.breakdown;
 
+    // Initialize final quote state and Navigate to it
+    initializeFinalState(priceCalculation);
+    $w('#multiStateBox').changeState("stateQuote");
+
     console.log("Final Quote Data:", filteredQuoteData);
     console.log("Quote Breakdown:\n", priceCalculation.breakdown);
 
     // Here you can add further processing like:
     // - Send to database
+    // - Send email to admin
+    // - Send email to customer
+}
+
+function initializeFinalState(priceCalculation) {
+    // Set heading based on category
+    if (quoteData.selectedCategory === "CCTV System") {
+        $w('#textHeading').text = "CCTV System Quote";
+    } else if (quoteData.selectedCategory === "Intruder Alarm") {
+        $w('#textHeading').text = "Intruder Alarm Quote";
+    }
+
+    // Set quote total
+    $w('#textQuote').text = `Your Estimate = €${priceCalculation.totalPrice.toFixed(2)} inc VAT`;
+
+    // Set info with user's email
+    $w('#textInfo').text = `We have emailed your quote to ${quoteData.userDetails.email} and a customer rep will be in touch shortly.`;
 }
