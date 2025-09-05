@@ -3,7 +3,9 @@ import { contacts, triggeredEmails } from 'wix-crm-backend';
 
 const ADMIN_CCTV_EMAIL_TEMPLATE_ID = 'Uvk9GF3';
 const ADMIN_ALARM_EMAIL_TEMPLATE_ID = 'UvkNh35';
-const ADMIN_EMAIL = 'bilal.faisal31@gmail.com';
+const USER_CCTV_EMAIL_TEMPLATE_ID = 'UvppHxG';
+const USER_ALARM_EMAIL_TEMPLATE_ID = 'Uvpqmko';
+const ADMIN_EMAIL = 'bookings@powerright.ie';
 
 export const sendAdminCCTVEmail = webMethod(Permissions.Anyone, async (filteredQuoteData) => {
     try {
@@ -178,6 +180,150 @@ export const sendAdminAlarmEmail = webMethod(Permissions.Anyone, async (filtered
 
     } catch (err) {
         console.error("Error sending admin Alarm email:", err);
+        return { success: false, error: err.message };
+    }
+});
+
+export const sendUserCCTVEmail = webMethod(Permissions.Anyone, async (filteredQuoteData) => {
+    try {
+        let contactId;
+        const customerEmail = filteredQuoteData.userDetails.email;
+
+        const queryResults = await contacts.queryContacts()
+            .eq('info.emails.email', customerEmail)
+            .find({ suppressAuth: true });
+
+        const contactsWithEmail = queryResults.items;
+
+        if (contactsWithEmail.length === 1) {
+            contactId = contactsWithEmail[0]._id;
+        } else if (contactsWithEmail.length > 1) {
+            contactId = contactsWithEmail[0]._id;
+        } else {
+            // Create customer contact
+            const contactInfo = {
+                name: {
+                    first: filteredQuoteData.userDetails.name.split(' ')[0] || filteredQuoteData.userDetails.name,
+                    last: filteredQuoteData.userDetails.name.split(' ').slice(1).join(' ') || "",
+                },
+                emails: [{
+                    email: customerEmail,
+                    tag: "MAIN"
+                }],
+            };
+
+            const options = {
+                allowDuplicates: false,
+                suppressAuth: true
+            };
+
+            const contact = await contacts.createContact(contactInfo, options);
+            contactId = contact._id;
+        }
+
+        // Format camera locations for user email
+        let cameraLocationDetails = "";
+        filteredQuoteData.cameraLocations.forEach((camera) => {
+            if (camera.locationType !== "N/A") {
+                cameraLocationDetails += `${camera.cameraNumber}: ${camera.locationType} location - ${camera.location}\n`;
+            } else {
+                cameraLocationDetails += `${camera.cameraNumber}: ${camera.locationType}\n`;
+            }
+        });
+
+        // Prepare email variables
+        const userCCTVEmailVariables = {
+            customerName: filteredQuoteData.userDetails.name,
+            selectedPackage: filteredQuoteData.selectedPackage,
+            numberOfCameras: filteredQuoteData.numberOfCameras,
+            includeMonitor: filteredQuoteData.includeMonitor,
+            includeAppView: filteredQuoteData.includeAppView,
+            totalPrice: filteredQuoteData.totalPrice,
+            cameraLocationDetails: cameraLocationDetails.trim(),
+            quoteBreakdown: filteredQuoteData.quoteBreakdown
+        };
+
+        // Send email to user
+        const result = await triggeredEmails.emailContact(USER_CCTV_EMAIL_TEMPLATE_ID, contactId, {
+            variables: userCCTVEmailVariables
+        });
+
+        console.log("User CCTV email sent successfully");
+        return { success: true, result, contactId };
+
+    } catch (err) {
+        console.error("Error sending user CCTV email:", err);
+        return { success: false, error: err.message };
+    }
+});
+
+export const sendUserAlarmEmail = webMethod(Permissions.Anyone, async (filteredQuoteData) => {
+    try {
+        let contactId;
+        const customerEmail = filteredQuoteData.userDetails.email;
+
+        const queryResults = await contacts.queryContacts()
+            .eq('info.emails.email', customerEmail)
+            .find({ suppressAuth: true });
+
+        const contactsWithEmail = queryResults.items;
+
+        if (contactsWithEmail.length === 1) {
+            contactId = contactsWithEmail[0]._id;
+        } else if (contactsWithEmail.length > 1) {
+            contactId = contactsWithEmail[0]._id;
+        } else {
+            // Create customer contact
+            const contactInfo = {
+                name: {
+                    first: filteredQuoteData.userDetails.name.split(' ')[0] || filteredQuoteData.userDetails.name,
+                    last: filteredQuoteData.userDetails.name.split(' ').slice(1).join(' ') || "",
+                },
+                emails: [{
+                    email: customerEmail,
+                    tag: "MAIN"
+                }],
+            };
+
+            const options = {
+                allowDuplicates: false,
+                suppressAuth: true
+            };
+
+            const contact = await contacts.createContact(contactInfo, options);
+            contactId = contact._id;
+        }
+
+        // Format selected components for user email
+        let selectedComponentsDetails = "";
+        filteredQuoteData.intruderComponents.forEach((component) => {
+            selectedComponentsDetails += `${component.name}: ${component.quantity} units\n`;
+        });
+
+        // Prepare email variables
+        const userAlarmEmailVariables = {
+            customerName: filteredQuoteData.userDetails.name,
+            selectedPackage: filteredQuoteData.selectedPackage,
+            alarmMonitoring: filteredQuoteData.alarmMonitoring,
+            appAccessWithAlarm: filteredQuoteData.appAccessWithAlarm,
+            totalPrice: filteredQuoteData.totalPrice,
+            selectedComponentsDetails: selectedComponentsDetails.trim(),
+            numberOfAccessDoors: filteredQuoteData.numberOfAccessDoors,
+            howManyAreGlazedDoors: filteredQuoteData.howManyAreGlazedDoors,
+            sensorColour: filteredQuoteData.sensorColour,
+            quoteBreakdown: filteredQuoteData.quoteBreakdown
+        };
+
+        // Send email to user
+        const result = await triggeredEmails.emailContact(USER_ALARM_EMAIL_TEMPLATE_ID, contactId, {
+            variables: userAlarmEmailVariables
+        });
+
+        console.log("User Alarm email sent successfully");
+        return { success: true, result, contactId };
+
+    } catch (err) {
+        console.error("Error sending user Alarm email:", err);
         return { success: false, error: err.message };
     }
 });
