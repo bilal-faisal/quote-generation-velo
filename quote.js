@@ -1,6 +1,6 @@
 import wixData from 'wix-data';
 import wixLocation from "wix-location";
-import { sendAdminCCTVEmail, sendAdminAlarmEmail } from 'backend/sendEmail.web';
+import { sendAdminCCTVEmail, sendAdminAlarmEmail, sendUserCCTVEmail, sendUserAlarmEmail } from 'backend/sendEmail.web';
 
 // Global variable to store form data
 let quoteData = {
@@ -42,7 +42,11 @@ const INTRUDER_COMPONENT_PRICES = {
 };
 
 $w.onReady(function () {
+
+    $w('#multiStateBox').changeState("state1");
+    updateProgressBar("state1");
     initializeState1();
+
 });
 
 function initializeState1() {
@@ -64,9 +68,17 @@ function initializeState1() {
         if (quoteData.selectedCategory) {
             if (quoteData.selectedCategory === "CCTV System") {
                 $w('#multiStateBox').changeState("state11");
+                updateProgressBar("state11");
+                // Scroll To Top
+                scrollToStateTop()
+
                 initializeState11()
             } else if (quoteData.selectedCategory === "Intruder Alarm") {
                 $w('#multiStateBox').changeState("state12");
+                updateProgressBar("state12");
+                // Scroll To Top
+                scrollToStateTop()
+
                 initializeState12();
             } else if (quoteData.selectedCategory === "Other") {
                 wixLocation.to("https://google.com");
@@ -106,9 +118,17 @@ function initializeState11() {
         if (quoteData.selectedPackage) {
             if (quoteData.selectedPackage === "1-4 Camera System") {
                 $w('#multiStateBox').changeState("state111");
+                updateProgressBar("state111");
+                // Scroll To Top
+                scrollToStateTop()
+
                 initializeState111()
             } else if (quoteData.selectedPackage === "4-8 Camera System") {
                 $w('#multiStateBox').changeState("state112");
+                updateProgressBar("state112");
+                // Scroll To Top
+                scrollToStateTop()
+
                 initializeState112()
             }
         }
@@ -116,6 +136,10 @@ function initializeState11() {
 
     $w('#buttonBackState11').onClick((event) => {
         $w('#multiStateBox').changeState("state1");
+        updateProgressBar("state1");
+        // Scroll To Top
+        scrollToStateTop()
+
     });
 }
 
@@ -141,11 +165,19 @@ function initializeState111() {
     $w('#buttonNext111').onClick((event) => {
         saveState111Data();
         $w('#multiStateBox').changeState("state1111");
+        updateProgressBar("state1111");
+        // Scroll To Top
+        scrollToStateTop()
+
         initializeState1111()
     });
 
     $w('#buttonBack111').onClick((event) => {
         $w('#multiStateBox').changeState("state11");
+        updateProgressBar("state11");
+        // Scroll To Top
+        scrollToStateTop()
+
     });
 }
 
@@ -189,11 +221,19 @@ function initializeState112() {
     $w('#buttonNext112').onClick((event) => {
         saveState112Data();
         $w('#multiStateBox').changeState("state1111");
+        updateProgressBar("state1111");
+        // Scroll To Top
+        scrollToStateTop()
+
         initializeState1111()
     });
 
     $w('#buttonBack112').onClick((event) => {
         $w('#multiStateBox').changeState("state11");
+        updateProgressBar("state11");
+        // Scroll To Top
+        scrollToStateTop()
+
     });
 }
 
@@ -235,14 +275,26 @@ function initializeState1111() {
     $w('#buttonNext1111').onClick((event) => {
         saveState1111Data();
         $w('#multiStateBox').changeState("state11111");
+        updateProgressBar("state11111");
+        // Scroll To Top
+        scrollToStateTop()
+
         initializeState11111();
     });
 
     $w('#buttonBack1111').onClick((event) => {
         if (quoteData.selectedPackage === "1-4 Camera System") {
             $w('#multiStateBox').changeState("state111");
+            updateProgressBar("state111");
+            // Scroll To Top
+            scrollToStateTop()
+
         } else if (quoteData.selectedPackage === "4-8 Camera System") {
             $w('#multiStateBox').changeState("state112");
+            updateProgressBar("state112");
+            // Scroll To Top
+            scrollToStateTop()
+
         }
     });
 }
@@ -336,11 +388,19 @@ function initializeState11111() {
     $w('#buttonNext11111').onClick((event) => {
         saveState11111Data();
         $w('#multiStateBox').changeState("state111111");
+        updateProgressBar("state111111");
+        // Scroll To Top
+        scrollToStateTop()
+
         initializeState111111()
     });
 
     $w('#buttonBack11111').onClick((event) => {
         $w('#multiStateBox').changeState("state1111");
+        updateProgressBar("state1111");
+        // Scroll To Top
+        scrollToStateTop()
+
     });
 }
 
@@ -431,6 +491,10 @@ function initializeState111111() {
 
     $w('#buttonBack111111').onClick((event) => {
         $w('#multiStateBox').changeState("state11111");
+        updateProgressBar("state11111");
+        // Scroll To Top
+        scrollToStateTop()
+
     });
 }
 
@@ -483,12 +547,20 @@ function initializeState12() {
     $w('#buttonNextState12').onClick((event) => {
         if (quoteData.selectedPackage) {
             $w('#multiStateBox').changeState("state121");
+            updateProgressBar("state121");
+            // Scroll To Top
+            scrollToStateTop()
+
             initializeState121()
         }
     });
 
     $w('#buttonBackState12').onClick((event) => {
         $w('#multiStateBox').changeState("state1");
+        updateProgressBar("state1");
+        // Scroll To Top
+        scrollToStateTop()
+
     });
 }
 
@@ -516,11 +588,19 @@ function initializeState121() {
     $w('#buttonNext121').onClick((event) => {
         saveState121Data();
         $w('#multiStateBox').changeState("state1211");
+        updateProgressBar("state1211");
+        // Scroll To Top
+        scrollToStateTop()
+
         initializeState1211()
     });
 
     $w('#buttonBack121').onClick((event) => {
         $w('#multiStateBox').changeState("state12");
+        updateProgressBar("state12");
+        // Scroll To Top
+        scrollToStateTop()
+
     });
 }
 
@@ -636,11 +716,19 @@ function initializeState1211() {
     $w('#buttonNext1211').onClick((event) => {
         saveState1211Data();
         $w('#multiStateBox').changeState("state12111");
+        updateProgressBar("state12111");
+        // Scroll To Top
+        scrollToStateTop()
+
         initializeState12111();
     });
 
     $w('#buttonBack1211').onClick((event) => {
         $w('#multiStateBox').changeState("state121");
+        updateProgressBar("state121");
+        // Scroll To Top
+        scrollToStateTop()
+
     });
 
     $w('#buttonNext1211').enable();
@@ -720,11 +808,19 @@ function initializeState12111() {
     $w('#buttonNext12111').onClick((event) => {
         saveState12111Data();
         $w('#multiStateBox').changeState("state111111");
+        updateProgressBar("state111111");
+        // Scroll To Top
+        scrollToStateTop()
+
         initializeState111111();
     });
 
     $w('#buttonBack12111').onClick((event) => {
         $w('#multiStateBox').changeState("state1211");
+        updateProgressBar("state1211");
+        // Scroll To Top
+        scrollToStateTop()
+
     });
 }
 
@@ -765,6 +861,10 @@ function saveState12111Data() {
             $w('#dropdownLevelOfCrime').options[$w('#dropdownLevelOfCrime').selectedIndex].label : "",
         value: $w('#dropdownLevelOfCrime').value
     };
+}
+
+function scrollToStateTop() {
+    $w('#lineTop').scrollTo()
 }
 
 function calculateTotalPrice() {
@@ -893,13 +993,20 @@ async function processQuoteData() {
     // Initialize final quote state and Navigate to it
     initializeFinalState(priceCalculation);
     $w('#multiStateBox').changeState("stateQuote");
+    updateProgressBar("stateQuote");
+    // Scroll To Top
+    scrollToStateTop()
 
     try {
         // Save to database
         await saveToDatabase(filteredQuoteData);
 
-        // Send admin email
+        // Send email to admin
         await sendEmailToAdmin(filteredQuoteData);
+
+        // Send email to admin
+        await sendEmailToUser(filteredQuoteData)
+
     } catch (error) {
         console.error("Error in processQuoteData:", error);
     }
@@ -955,4 +1062,102 @@ async function sendEmailToAdmin(filteredQuoteData) {
     } catch (error) {
         console.error("Error sending admin email:", error);
     }
+}
+
+async function sendEmailToUser(filteredQuoteData) {
+    try {
+        if (quoteData.selectedCategory === "CCTV System") {
+            // Send user email for CCTV
+            const result = await sendUserCCTVEmail(filteredQuoteData);
+            if (result.success) {
+                console.log("User CCTV email sent successfully");
+            } else {
+                console.error("Failed to send user CCTV email:", result.error);
+            }
+        } else if (quoteData.selectedCategory === "Intruder Alarm") {
+            // Send user email for Alarm
+            const result = await sendUserAlarmEmail(filteredQuoteData);
+            if (result.success) {
+                console.log("User Alarm email sent successfully");
+            } else {
+                console.error("Failed to send user Alarm email:", result.error);
+            }
+        }
+    } catch (error) {
+        console.error("Error sending user email:", error);
+    }
+}
+
+function updateProgressBar(currentState) {
+    let progressPercentage = 0;
+
+    switch (currentState) {
+        // Initial states
+        case "state1":
+            progressPercentage = 10;
+            break;
+
+        // CCTV package selection
+        case "state11":
+            progressPercentage = 20;
+            break;
+
+        // Intruder Alarm package selection
+        case "state12":
+            progressPercentage = 20;
+            break;
+
+        // CCTV configuration states
+        case "state111": // 1-4 Camera System config
+        case "state112": // 4-8 Camera System config
+            progressPercentage = 35;
+            break;
+
+        // Intruder Alarm configuration
+        case "state121":
+            progressPercentage = 35;
+            break;
+
+        // Camera locations (shared by both CCTV flows)
+        case "state1111":
+            progressPercentage = 50;
+            break;
+
+        // Intruder Alarm property details
+        case "state1211":
+            progressPercentage = 50;
+            break;
+
+        // CCTV installation questions
+        case "state11111":
+            progressPercentage = 65;
+            break;
+
+        // Intruder Alarm additional details
+        case "state12111":
+            progressPercentage = 65;
+            break;
+
+        // User details (shared by all flows)
+        case "state111111":
+            progressPercentage = 80;
+            break;
+
+        // Final quote state
+        case "stateQuote":
+            progressPercentage = 100;
+            break;
+
+        default:
+            progressPercentage = 0;
+            break;
+    }
+
+    // Update the progress bar element
+    $w('#progressBar').value = progressPercentage;
+
+    // Optional: Update progress text
+    $w('#textProgressBar').text = `${progressPercentage}% complete`;
+
+    console.log(`Progress updated: ${currentState} = ${progressPercentage}%`);
 }
