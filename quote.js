@@ -81,7 +81,7 @@ function initializeState1() {
 
                 initializeState12();
             } else if (quoteData.selectedCategory === "Other") {
-                wixLocation.to("https://google.com");
+                wixLocation.to("/domestic-enquiry");
             }
         }
     });
