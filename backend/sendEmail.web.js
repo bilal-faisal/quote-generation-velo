@@ -5,6 +5,9 @@ const ADMIN_CCTV_EMAIL_TEMPLATE_ID = 'Uvk9GF3';
 const ADMIN_ALARM_EMAIL_TEMPLATE_ID = 'UvkNh35';
 const USER_CCTV_EMAIL_TEMPLATE_ID = 'UvppHxG';
 const USER_ALARM_EMAIL_TEMPLATE_ID = 'Uvpqmko';
+const ADMIN_CONTACT_EMAIL_TEMPLATE_ID = 'UwJ8UxA';
+const USER_CONTACT_EMAIL_TEMPLATE_ID = 'UwJ9mH8';
+
 const ADMIN_EMAIL = 'bookings@powerright.ie';
 
 export const sendAdminCCTVEmail = webMethod(Permissions.Anyone, async (filteredQuoteData) => {
@@ -324,6 +327,131 @@ export const sendUserAlarmEmail = webMethod(Permissions.Anyone, async (filteredQ
 
     } catch (err) {
         console.error("Error sending user Alarm email:", err);
+        return { success: false, error: err.message };
+    }
+});
+
+// Other
+export const sendAdminContactEmail = webMethod(Permissions.Anyone, async (contactData) => {
+    try {
+        let contactId;
+        const queryResults = await contacts.queryContacts()
+            .eq('info.emails.email', ADMIN_EMAIL)
+            .find({ suppressAuth: true });
+
+        const contactsWithEmail = queryResults.items;
+
+        if (contactsWithEmail.length === 1) {
+            contactId = contactsWithEmail[0]._id;
+        } else if (contactsWithEmail.length > 1) {
+            contactId = contactsWithEmail[0]._id;
+        } else {
+            // Create admin contact if doesn't exist
+            const contactInfo = {
+                name: {
+                    first: "Admin",
+                    last: "Team",
+                },
+                emails: [{
+                    email: ADMIN_EMAIL,
+                    tag: "MAIN"
+                }],
+            };
+
+            const options = {
+                allowDuplicates: false,
+                suppressAuth: true
+            };
+
+            const contact = await contacts.createContact(contactInfo, options);
+            contactId = contact._id;
+        }
+
+        // Prepare email variables for admin
+        const adminContactEmailVariables = {
+            // Customer details
+            customerName: contactData.name,
+            customerEmail: contactData.email,
+            customerPhone: contactData.phone,
+            streetAddress: contactData.streetAddress,
+            town: contactData.town,
+            country: contactData.country,
+            eircode: contactData.eircode,
+
+            // Inquiry details
+            interests: contactData.interests,
+            query: contactData.query,
+            howDidYouHear: contactData.howDidYouHear,
+        };
+
+        // Send email to admin
+        const result = await triggeredEmails.emailContact(ADMIN_CONTACT_EMAIL_TEMPLATE_ID, contactId, {
+            variables: adminContactEmailVariables
+        });
+
+        console.log("Admin contact email sent successfully");
+        return { success: true, result, contactId };
+
+    } catch (err) {
+        console.error("Error sending admin contact email:", err);
+        return { success: false, error: err.message };
+    }
+});
+
+export const sendUserContactEmail = webMethod(Permissions.Anyone, async (contactData) => {
+    try {
+        let contactId;
+        const customerEmail = contactData.email;
+
+        const queryResults = await contacts.queryContacts()
+            .eq('info.emails.email', customerEmail)
+            .find({ suppressAuth: true });
+
+        const contactsWithEmail = queryResults.items;
+
+        if (contactsWithEmail.length === 1) {
+            contactId = contactsWithEmail[0]._id;
+        } else if (contactsWithEmail.length > 1) {
+            contactId = contactsWithEmail[0]._id;
+        } else {
+            // Create customer contact
+            const contactInfo = {
+                name: {
+                    first: contactData.name.split(' ')[0] || contactData.name,
+                    last: contactData.name.split(' ').slice(1).join(' ') || "",
+                },
+                emails: [{
+                    email: customerEmail,
+                    tag: "MAIN"
+                }],
+            };
+
+            const options = {
+                allowDuplicates: false,
+                suppressAuth: true
+            };
+
+            const contact = await contacts.createContact(contactInfo, options);
+            contactId = contact._id;
+        }
+
+        // Prepare email variables for user confirmation
+        const userContactEmailVariables = {
+            customerName: contactData.name,
+            interests: contactData.interests,
+            query: contactData.query,
+        };
+
+        // Send confirmation email to user
+        const result = await triggeredEmails.emailContact(USER_CONTACT_EMAIL_TEMPLATE_ID, contactId, {
+            variables: userContactEmailVariables
+        });
+
+        console.log("User contact confirmation email sent successfully");
+        return { success: true, result, contactId };
+
+    } catch (err) {
+        console.error("Error sending user contact email:", err);
         return { success: false, error: err.message };
     }
 });
